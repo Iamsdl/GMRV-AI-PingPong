@@ -124,7 +124,7 @@ GameObject:
   - component: {fileID: 138206711}
   - component: {fileID: 138206713}
   m_Layer: 0
-  m_Name: Fileu
+  m_Name: Net
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -314,7 +314,7 @@ GameObject:
   - component: {fileID: 903397954}
   - component: {fileID: 903397955}
   m_Layer: 0
-  m_Name: Paleta1
+  m_Name: Pad1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -466,7 +466,7 @@ Grid:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 937336082}
   m_Enabled: 1
-  m_CellSize: {x: 0.5, y: 0.5, z: 0}
+  m_CellSize: {x: 1, y: 1, z: 0}
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
   m_CellSwizzle: 0
@@ -498,7 +498,7 @@ GameObject:
   - component: {fileID: 1073607884}
   - component: {fileID: 1073607883}
   m_Layer: 0
-  m_Name: Minge
+  m_Name: Ball
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -617,7 +617,7 @@ GameObject:
   - component: {fileID: 1413388413}
   - component: {fileID: 1413388414}
   m_Layer: 0
-  m_Name: Paleta2
+  m_Name: Pad2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -678,13 +678,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1413388409}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.258819, w: 0.9659259}
   m_LocalPosition: {x: 7, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 10, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -30}
 --- !u!61 &1413388412
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -870,7 +870,7 @@ GameObject:
   - component: {fileID: 1933116553}
   - component: {fileID: 1933116552}
   m_Layer: 0
-  m_Name: Masa
+  m_Name: Table
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
