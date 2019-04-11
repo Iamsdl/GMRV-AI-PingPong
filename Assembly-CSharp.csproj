@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\AI.cs" />
+    <Compile Include="Assets\Ball.cs" />
     <Compile Include="Assets\Player.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>F:/My Stuff/SDL/Facultate/Master/anu 1/semestru 2/AI/PingPong5/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>

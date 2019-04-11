@@ -5,73 +5,71 @@ using UnityEngine;
 
 public enum BallState
 {
-    Irelevant = 2,
+    Irrelevant = 2,
     Relevant = 1,
     Urgent = 0
 }
 
-public class State
+public struct State
 {
-    public State(GameObject c_ball, GameObject c_paddle, float c_gridSize, float c_angleStep, float c_bouncinessStep)
+    public State(GameObject c_ball, GameObject c_paddle)
     {
         ball = c_ball;
         paddle = c_paddle;
-        gridSize = c_gridSize;
-        angleStep = c_angleStep;
-        bouncinessStep = c_bouncinessStep;
+        ballState = BallState.Relevant;
     }
 
-    private const int minPadX = 0;
-    private const int maxPadX = 9;
-    private const int minPadY = -4;
-    private const int maxPadY = 5;
-    private const int minPadAngle = -90;
-    private const int maxPadAngle = 90;
-    private const int minPadBounciness = 0;
-    private const int maxPadBounciness = 2;
+    private const float minPadX = 0;
+    private const float maxPadX = 9;
+    private const float minPadY = -4;
+    private const float maxPadY = 5;
+    private const float minPadAngle = -90;
+    private const float maxPadAngle = 90;
+    private const float minPadBounciness = 0;
+    private const float maxPadBounciness = 2;
 
-    private static float gridSize;
-    private static float angleStep;
-    private static float bouncinessStep;
+    private const float gridSize = 0.5f;
+    private const float angleStep = 30;
+    private const float bouncinessStep = 0.5f;
 
     private static GameObject ball;
     private static GameObject paddle;
+
+    public BallState ballState;
 
     public int BallX
     {
         get
         {
-            return (int)Math.Floor(ball.transform.position.x / gridSize);
+            return ballState == BallState.Irrelevant ? 0 : (int)Math.Floor(ball.transform.position.x / gridSize);
         }
     }
     public int BallY
     {
         get
         {
-            return (int)Math.Floor(ball.transform.position.y / gridSize);
+            return ballState == BallState.Irrelevant ? 0 : (int)Math.Floor(ball.transform.position.y / gridSize);
         }
     }
     public int BallDir
     {
         get
         {
-            return (int)(Math.Floor(Math.Asin(ball.GetComponent<Rigidbody2D>().velocity.normalized.y) * 180 / Math.PI / angleStep));
+            return ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(Math.Asin(ball.GetComponent<Rigidbody2D>().velocity.normalized.y) * 180 / Math.PI / angleStep));
         }
     }
-
-    public BallState ballState;
 
     public int PadX
     {
         get
         {
-            return (int)Math.Ceiling(paddle.transform.position.x / gridSize);
+            return ballState == BallState.Irrelevant ? 0 : (int)Math.Ceiling(paddle.transform.position.x / gridSize);
         }
         set
         {
-            if (minPadX < (PadX + value) * gridSize && (PadX + value) * gridSize < maxPadX)
+            if ((minPadX < value * gridSize) && (value * gridSize < maxPadX))
             {
-                paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(value * gridSize, 0));
+                paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(value * gridSize, PadY * gridSize));
             }
         }
     }
@@ -79,13 +77,13 @@ public class State
     {
         get
         {
-            return (int)Math.Ceiling(paddle.transform.position.y / gridSize);
+            return ballState == BallState.Irrelevant ? 0 : (int)Math.Ceiling(paddle.transform.position.y / gridSize);
         }
         set
         {
-            if (minPadY < (PadY + value) * gridSize && (PadY + value) * gridSize < maxPadY)
+            if ((minPadY < value * gridSize) && (value * gridSize < maxPadY))
             {
-                paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(0, value * gridSize));
+                paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(PadX * gridSize, value * gridSize));
             }
         }
     }
@@ -93,11 +91,11 @@ public class State
     {
         get
         {
-            return (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().transform.rotation.z / angleStep));
+            return ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().transform.rotation.z / angleStep));
         }
         set
         {
-            if (minPadAngle < (PadRot + value) * angleStep && (PadRot + value) * angleStep < maxPadAngle)
+            if ((minPadAngle < value * angleStep) && (value * angleStep < maxPadAngle))
             {
                 paddle.GetComponent<Rigidbody2D>().MoveRotation(value * angleStep);
             }
@@ -107,44 +105,47 @@ public class State
     {
         get
         {
-            return (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness / bouncinessStep));
+            return ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness / bouncinessStep));
         }
         set
         {
-            if (minPadBounciness < (PadBounciness + value) * bouncinessStep && (PadBounciness + value) * bouncinessStep < maxPadBounciness)
+            if ((minPadBounciness < value * bouncinessStep) && (value * bouncinessStep < maxPadBounciness))
             {
-                paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness += value * bouncinessStep;
+                paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness = value * bouncinessStep;
             }
         }
     }
 
 
     //TODO
-    public State Apply(Action action, out float reward, out bool done)
+    public State Apply(Action action, out float reward)
     {
-        PadX = action.h;
-        PadY = action.v;
-        PadRot = action.r;
-        PadBounciness = action.b;
+        State state = this;
 
-        reward =;
+        state.PadX += action.h;
+        state.PadY += action.v;
+        state.PadRot += action.r;
+        state.PadBounciness += action.b;
+
+        reward = AI.r_table[state];
+        return state;
     }
 }
 
-public class Action
+public struct Action
 {
     public int h;
     public int v;
     public int r;
     public int b;
 
-    public Action()
-    {
-        h = UnityEngine.Random.Range(-1, 1);
-        v = UnityEngine.Random.Range(-1, 1);
-        r = UnityEngine.Random.Range(-1, 1);
-        b = UnityEngine.Random.Range(-1, 1);
-    }
+    //public Action()
+    //{
+    //    h = UnityEngine.Random.Range(-1, 1);
+    //    v = UnityEngine.Random.Range(-1, 1);
+    //    r = UnityEngine.Random.Range(-1, 1);
+    //    b = UnityEngine.Random.Range(-1, 1);
+    //}
 
     public Action NextRandom()
     {
@@ -157,7 +158,7 @@ public class Action
 
     internal Action NextBest(Dictionary<Action, float> a_table)
     {
-        Action action = null;
+        Action action = new Action();
         float max = float.MinValue;
         foreach (var item in a_table)
         {
@@ -173,17 +174,19 @@ public class Action
 
 public class AI : MonoBehaviour
 {
+    public GameObject ball;
     private GameObject paddle;
 
     private State currentState;
     private State nextState;
 
     private Action action;
-    private float qProb;
 
-    private Dictionary<State, Dictionary<Action, float>> q_table;
-    private float alpha;
-    private float gamma;
+    public static Dictionary<State, float> r_table;
+    public static Dictionary<State, Dictionary<Action, float>> q_table;
+    private const float alpha = 0.5f;
+    private const float gamma = 0.5f;
+    private const float qProb = 0.1f;
 
     private List<Action> possibleActions;
 
@@ -191,12 +194,12 @@ public class AI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        paddle = this.gameObject;
-
-        qProb = 0.1f;
-        alpha = 0.5f;
-        gamma = 0.5f;
         action = new Action();
+
+        paddle = this.gameObject;
+        //State test1 = new State(ball, paddle);
+        //test1.PadX = 1;
+
         possibleActions = new List<Action>();
         for (int i = -1; i <= 1; i++)
         {
@@ -211,6 +214,17 @@ public class AI : MonoBehaviour
                 }
             }
         }
+
+        q_table = new Dictionary<State, Dictionary<Action, float>>();
+        currentState = new State(ball, paddle);
+        q_table[currentState] = new Dictionary<Action, float>();
+        foreach (var a in possibleActions)
+        {
+            q_table[currentState].Add(a, 0);
+        }
+
+        r_table = new Dictionary<State, float>();
+        r_table.Add(currentState, -0.5f);
     }
 
     // Update is called once per frame
@@ -222,19 +236,23 @@ public class AI : MonoBehaviour
         }
         else
         {
-            if (q_table[currentState] == null)
-            {
-                q_table[currentState] = new Dictionary<Action, float>();
-                foreach (var a in possibleActions)
-                {
-                    q_table[currentState].Add(a, 0);
-                }
-            }
-
             action = action.NextBest(q_table[currentState]);
         }
 
-        nextState = currentState.Apply(action, out float reward, out bool done);
+        nextState = currentState.Apply(action, out float reward);
+        if (!q_table.ContainsKey(nextState))
+        {
+            q_table[nextState] = new Dictionary<Action, float>();
+            foreach (var a in possibleActions)
+            {
+                q_table[nextState].Add(a, 0);
+            }
+        }
+        if (!r_table.ContainsKey(nextState))
+        {
+            r_table.Add(nextState, -0.5f);
+        }
+
         float old_value = q_table[currentState][action];
         float next_max = FindMaxValue(q_table[nextState]);
 
@@ -255,5 +273,22 @@ public class AI : MonoBehaviour
             }
         }
         return max;
+    }
+
+    public void SetReward(float value)
+    {
+        if (!r_table.ContainsKey(currentState))
+        {
+            r_table.Add(currentState, value);
+        }
+        else
+        {
+            r_table[currentState] = value;
+        }
+    }
+
+    public void ChangeBallState(BallState ballState)
+    {
+        currentState.ballState = ballState;
     }
 }
