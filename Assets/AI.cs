@@ -21,9 +21,19 @@ public class State
         bouncinessStep = c_bouncinessStep;
     }
 
+    private const int minPadX = 0;
+    private const int maxPadX = 9;
+    private const int minPadY = -4;
+    private const int maxPadY = 5;
+    private const int minPadAngle = -90;
+    private const int maxPadAngle = 90;
+    private const int minPadBounciness = 0;
+    private const int maxPadBounciness = 2;
+
     private static float gridSize;
     private static float angleStep;
     private static float bouncinessStep;
+
     private static GameObject ball;
     private static GameObject paddle;
 
@@ -59,7 +69,7 @@ public class State
         }
         set
         {
-            if (0 < (PadX + value) * gridSize && (PadX + value) * gridSize < 9)
+            if (minPadX < (PadX + value) * gridSize && (PadX + value) * gridSize < maxPadX)
             {
                 paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(value * gridSize, 0));
             }
@@ -73,7 +83,7 @@ public class State
         }
         set
         {
-            if (-4 < (PadY + value) * gridSize && (PadY + value) * gridSize < 5)
+            if (minPadY < (PadY + value) * gridSize && (PadY + value) * gridSize < maxPadY)
             {
                 paddle.GetComponent<Rigidbody2D>().MovePosition(new Vector2(0, value * gridSize));
             }
@@ -87,7 +97,7 @@ public class State
         }
         set
         {
-            if (-90 < (PadRot + value) * angleStep && (PadRot + value) * angleStep < 90)
+            if (minPadAngle < (PadRot + value) * angleStep && (PadRot + value) * angleStep < maxPadAngle)
             {
                 paddle.GetComponent<Rigidbody2D>().MoveRotation(value * angleStep);
             }
@@ -101,7 +111,7 @@ public class State
         }
         set
         {
-            if (0 < (PadBounciness + value) * bouncinessStep && (PadBounciness + value) * bouncinessStep < 2)
+            if (minPadBounciness < (PadBounciness + value) * bouncinessStep && (PadBounciness + value) * bouncinessStep < maxPadBounciness)
             {
                 paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness += value * bouncinessStep;
             }
