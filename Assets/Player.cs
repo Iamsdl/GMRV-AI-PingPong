@@ -51,13 +51,24 @@ public class Player : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space)) { pm.bounciness = 0; charging = true; }
         if (Input.GetKeyUp(KeyCode.Space)) { charging = false; }
 
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            if (pm.bounciness<State.maxPadBounciness)
+            {
+                pm.bounciness = State.maxPadBounciness;
+            }
+            else
+            {
+                pm.bounciness = 0;
+            }
+        }
     }
 
     private void FixedUpdate()
     {
         rb.velocity = movementSpeed * new Vector2(horizontalAxis, verticalAxis).normalized;
         rb.angularVelocity = rotationSpeed * rotation;
-        if (charging && pm.bounciness < 2)
+        if (charging && pm.bounciness < State.maxPadBounciness)
         {
             pm.bounciness += 0.02f;
         }

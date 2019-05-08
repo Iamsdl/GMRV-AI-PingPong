@@ -4,61 +4,100 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    public GameObject pad1;
-    public GameObject pad2;
+    private const int AiWinReward = 1000;
+    private const int AiLoseReward = -10;
+    private const int AiHitOpponentTableReward = 100;
+    private const int AiHitBallReward = 10;
+
+    public int timeScale = 1;
+
+    /// <summary>
+    /// player pad
+    /// </summary>
+    public GameObject leftPlayerPad;
+    /// <summary>
+    /// ai pad
+    /// </summary>
+    public GameObject rightPlayerPad;
     public GameObject table;
     public GameObject edge;
     public AI ai;
 
-
-    private bool hitTable;
+    private LastHit lastHit;
     private bool hitPad;
     private int player;
 
+    private bool p = false;
+
+    private Rigidbody2D ballRB;
 
     // Start is called before the first frame update
     void Start()
     {
-        hitPad = false;
-        player = 0;
+        ballRB = this.GetComponent<Rigidbody2D>();
         Reset();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Backspace))
         {
-            this.GetComponent<Rigidbody2D>().simulated = true;
+            ballRB.simulated = true;
         }
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            ballRB.simulated = true;
+            ai.SetBallState(BallState.Relevant);
+            lastHit = LastHit.LeftPad;
+            ballRB.velocity = new Vector2(7, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            p = true;
+        }
+        if(Input.GetKeyDown(KeyCode.L))
+        {
+            p = false;
+        }
+        UnityEngine.Time.timeScale =timeScale;
+    }
+
+    enum LastHit
+    {
+        LeftTable,
+        RightTable,
+        LeftPad,
+        RightPad
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.gameObject == pad1)
+        if (collision.collider.gameObject == leftPlayerPad)
         {
-            if (player == 1 && !hitPad)
+            if (lastHit == LastHit.LeftTable)
             {
-                hitPad = true;
-                ai.ChangeBallState(BallState.Relevant);
+                lastHit = LastHit.LeftPad;
+                ai.SetBallState(BallState.Relevant);
             }
             else
             {
-                ai.SetReward(100);
+                ai.SetReward(AiWinReward);
                 Reset();
             }
         }
-        else if (collision.collider.gameObject == pad2)
+        else if (collision.collider.gameObject == rightPlayerPad)
         {
-            if (player == 2 && !hitPad)
+            if (lastHit == LastHit.RightTable)
             {
-                hitPad = true;
-                ai.SetReward(1);
-                ai.ChangeBallState(BallState.Irrelevant);
+                //TODO : lastRelevantState
+                lastHit = LastHit.RightPad;
+                ai.SetReward(AiHitBallReward);
+                ai.SetBallState(BallState.Irrelevant);
             }
             else
             {
-                ai.SetReward(-100);
+                ai.SetReward(AiLoseReward);
                 Reset();
             }
         }
@@ -66,43 +105,41 @@ public class Ball : MonoBehaviour
         {
             if (gameObject.transform.position.x < 0)
             {
-                if (player == 1)
+                if (lastHit == LastHit.RightPad)
                 {
-                    ai.SetReward(100);
-                    Reset();
+                    lastHit = LastHit.LeftTable;
+                    ai.SetReward(AiHitOpponentTableReward);
                 }
                 else
                 {
-                    player = 1;
-                    hitPad = false;
-                    ai.SetReward(10);
+                    ai.SetReward(AiWinReward);
+                    Reset();
                 }
             }
             else
             {
-                if (player == 2)
+                if (lastHit == LastHit.LeftPad)
                 {
-                    ai.SetReward(-100);
-                    Reset();
+                    lastHit = LastHit.RightTable;
+                    ai.SetBallState(BallState.Urgent);
                 }
                 else
                 {
-                    player = 2;
-                    hitPad = false;
-                    ai.ChangeBallState(BallState.Urgent);
+                    ai.SetReward(AiLoseReward);
+                    Reset();
                 }
             }
         }
         else if (collision.collider.gameObject == edge)
         {
-            if (player == 1)
+            if (lastHit == LastHit.LeftPad || lastHit == LastHit.LeftTable)
             {
-                ai.SetReward(100);
+                ai.SetReward(AiWinReward);
                 Reset();
             }
             else
             {
-                ai.SetReward(-100);
+                ai.SetReward(AiLoseReward);
                 Reset();
             }
         }
@@ -110,9 +147,22 @@ public class Ball : MonoBehaviour
 
     private void Reset()
     {
-        this.transform.position = new Vector3(-4, 3, 0);
-        this.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 0);
-        this.GetComponent<Rigidbody2D>().simulated = false;
+        lastHit = LastHit.RightPad;
+        ai.SetBallState(BallState.Irrelevant);
 
+        this.transform.position = new Vector3(-4, 3, 0);
+        ballRB.velocity = new Vector2(0, 0);
+        ballRB.angularVelocity = 0;
+        ballRB.simulated = false;
+        if (p)
+        {
+            ballRB.simulated = true;
+            ai.SetBallState(BallState.Relevant);
+            lastHit = LastHit.LeftPad;
+            ballRB.velocity = new Vector2(7, 0);
+        }
+            
     }
+
+
 }
