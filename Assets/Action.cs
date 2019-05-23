@@ -38,4 +38,9 @@ public struct Action
         }
         return action;
     }
+
+    public override string ToString()
+    {
+        return "Action=["+string.Join(",", h, v, r, b)+"]";
+    }
 }

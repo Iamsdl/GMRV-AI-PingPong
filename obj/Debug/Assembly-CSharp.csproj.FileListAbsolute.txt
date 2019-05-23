@@ -284,3 +284,7 @@ F:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\Temp\bin\Debug\Un
 F:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.csproj.CopyComplete
 F:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.dll
 F:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.pdb
+H:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.csprojAssemblyReference.cache
+H:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.csproj.CoreCompileInputs.cache
+H:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.dll
+H:\My Stuff\SDL\Facultate\Master\anu 1\semestru 2\AI\PingPong5\obj\Debug\Assembly-CSharp.pdb

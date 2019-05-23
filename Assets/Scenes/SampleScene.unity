@@ -579,8 +579,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8440bb5f375ceee409d10421b079e74d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pad1: {fileID: 903397950}
-  pad2: {fileID: 1413388409}
+  timeScale: 1
+  leftPlayerPad: {fileID: 903397950}
+  rightPlayerPad: {fileID: 1413388409}
   table: {fileID: 1933116551}
   edge: {fileID: 1657405919}
   ai: {fileID: 1413388414}

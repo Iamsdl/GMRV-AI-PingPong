@@ -11,6 +11,8 @@ public class Ball : MonoBehaviour
 
     public int timeScale = 1;
 
+    private State lastRelevantState;
+
     /// <summary>
     /// player pad
     /// </summary>
@@ -24,8 +26,6 @@ public class Ball : MonoBehaviour
     public AI ai;
 
     private LastHit lastHit;
-    private bool hitPad;
-    private int player;
 
     private bool p = false;
 
@@ -56,11 +56,19 @@ public class Ball : MonoBehaviour
         {
             p = true;
         }
-        if(Input.GetKeyDown(KeyCode.L))
+        if (Input.GetKeyDown(KeyCode.L))
         {
             p = false;
         }
-        UnityEngine.Time.timeScale =timeScale;
+        UnityEngine.Time.timeScale = timeScale;
+    }
+
+    void FixedUpdate()
+    {
+        State currentState = ai.GetCurrentState();
+        currentState.SetBallX(ballRB.transform.position.x);
+        currentState.SetBallY(ballRB.transform.position.y);
+        currentState.SetBallDir(ballRB.velocity);
     }
 
     enum LastHit
@@ -82,7 +90,7 @@ public class Ball : MonoBehaviour
             }
             else
             {
-                ai.SetReward(AiWinReward);
+                ai.SetReward(lastRelevantState, AiWinReward);
                 Reset();
             }
         }
@@ -91,6 +99,7 @@ public class Ball : MonoBehaviour
             if (lastHit == LastHit.RightTable)
             {
                 //TODO : lastRelevantState
+                lastRelevantState = ai.GetCurrentState();
                 lastHit = LastHit.RightPad;
                 ai.SetReward(AiHitBallReward);
                 ai.SetBallState(BallState.Irrelevant);
@@ -108,11 +117,11 @@ public class Ball : MonoBehaviour
                 if (lastHit == LastHit.RightPad)
                 {
                     lastHit = LastHit.LeftTable;
-                    ai.SetReward(AiHitOpponentTableReward);
+                    ai.SetReward(lastRelevantState, AiHitOpponentTableReward);
                 }
                 else
                 {
-                    ai.SetReward(AiWinReward);
+                    ai.SetReward(lastRelevantState, AiWinReward);
                     Reset();
                 }
             }
@@ -125,7 +134,7 @@ public class Ball : MonoBehaviour
                 }
                 else
                 {
-                    ai.SetReward(AiLoseReward);
+                    ai.SetReward(lastRelevantState, AiLoseReward);
                     Reset();
                 }
             }
@@ -134,12 +143,12 @@ public class Ball : MonoBehaviour
         {
             if (lastHit == LastHit.LeftPad || lastHit == LastHit.LeftTable)
             {
-                ai.SetReward(AiWinReward);
+                ai.SetReward(lastRelevantState, AiWinReward);
                 Reset();
             }
             else
             {
-                ai.SetReward(AiLoseReward);
+                ai.SetReward(lastRelevantState, AiLoseReward);
                 Reset();
             }
         }
@@ -154,6 +163,8 @@ public class Ball : MonoBehaviour
         ballRB.velocity = new Vector2(0, 0);
         ballRB.angularVelocity = 0;
         ballRB.simulated = false;
+        ai.SetBallState(BallState.Irrelevant);
+        lastRelevantState = ai.GetCurrentState();
         if (p)
         {
             ballRB.simulated = true;
@@ -161,8 +172,5 @@ public class Ball : MonoBehaviour
             lastHit = LastHit.LeftPad;
             ballRB.velocity = new Vector2(7, 0);
         }
-            
     }
-
-
 }

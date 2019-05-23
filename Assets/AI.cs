@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class AI : MonoBehaviour
@@ -51,7 +52,41 @@ public class AI : MonoBehaviour
         AddStateToQTable(currentState);
 
         r_table = new Dictionary<State, float>();
-        AddStateToRTable(currentState);
+        SetReward(currentState);
+        string path = EditorUtility.OpenFilePanel("Load qtable", "", "txt");
+        if (path.Length != 0)
+        {
+            string[] rows = File.ReadAllText(path).Split('\n');
+            for (int i = 0; i < rows.Length-1; i++)
+            {
+                List<Action> actions = new List<Action>();
+                List<float> rewards = new List<float>();
+
+                string[] rowSplit = rows[i].Split(';');
+                string stateString = rowSplit[0];
+                State state = new State(ball, paddle);
+                state.FromString(stateString);
+                for (int j = 1; j < rowSplit.Length-1; j++)
+                {
+                    string actionString = rowSplit[j];
+                    int index1 = actionString.IndexOf('[', 1);
+                    int index2 = actionString.IndexOf(']');
+                    string[] actionComponents = actionString.Substring(index1 + 1, index2 - index1 - 1).Split(',');
+                    Action action = new Action()
+                    {
+                        h = Convert.ToInt32(actionComponents[0]),
+                        v = Convert.ToInt32(actionComponents[1]),
+                        r = Convert.ToInt32(actionComponents[2]),
+                        b = Convert.ToInt32(actionComponents[3])
+                    };
+                    actions.Add(action);
+                    float reward = Convert.ToSingle(actionString.Substring(index2 + 2).Trim(']'));
+                    rewards.Add(reward);
+                }
+                AddStateToQTable(state, actions, rewards);
+                SetReward(state, Convert.ToSingle(rowSplit[rowSplit.Length - 1]));
+            }
+        }
     }
 
 
@@ -60,7 +95,7 @@ public class AI : MonoBehaviour
     void FixedUpdate()
     {
         AddStateToQTable(currentState);
-        AddStateToRTable(currentState);
+        SetReward(currentState);
         if (currentState.ballState != BallState.Irrelevant)
         {
             if (UnityEngine.Random.Range(0.0f, 1.0f) < qProb)
@@ -81,7 +116,7 @@ public class AI : MonoBehaviour
         }
         nextState = currentState.Apply(action);
         AddStateToQTable(nextState);
-        AddStateToRTable(nextState);
+        SetReward(nextState);
         float reward = r_table[nextState];
 
         float old_value = q_table[currentState][action];
@@ -93,11 +128,23 @@ public class AI : MonoBehaviour
         currentState = nextState;
     }
 
-    private void AddStateToRTable(State state)
+    //private void AddStateToRTable(State state)
+    //{
+    //    if (!r_table.ContainsKey(state))
+    //    {
+    //        r_table.Add(state, -0.5f);
+    //    }
+    //}
+
+    public void SetReward(State state, float reward=-0.5f)
     {
         if (!r_table.ContainsKey(state))
         {
-            r_table.Add(state, -0.5f);
+            r_table.Add(state, reward);
+        }
+        else
+        {
+            r_table[state] = reward;
         }
     }
 
@@ -112,6 +159,18 @@ public class AI : MonoBehaviour
             }
 
             q_table[state][new Action() { b = 0, h = 0, r = 0, v = 0 }] = 0;
+        }
+    }
+
+    private void AddStateToQTable(State state, List<Action> actions, List<float> rewards)
+    {
+        if (!q_table.ContainsKey(state))
+        {
+            q_table[state] = new Dictionary<Action, float>();
+            for (int i = 0; i < actions.Count; i++)
+            {
+                q_table[state].Add(actions[i], rewards[i]);
+            }
         }
     }
 
@@ -140,6 +199,11 @@ public class AI : MonoBehaviour
         }
     }
 
+    public State GetCurrentState()
+    {
+        return currentState;
+    }
+
 
 
     public void SetBallState(BallState ballState)
@@ -153,18 +217,30 @@ public class AI : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        var path = EditorUtility.SaveFilePanel(
+            "Save qtable",
+            "",
+            "test.txt",
+            "txt");
+
+        if (path.Length != 0)
+        {
+            string test = "";
+            foreach (var item in q_table.Keys)
+            {
+                test += "State=[" + item + "];" + string.Join(";", q_table[item]) + ";" + r_table[item] + "\n";
+            }
+            File.WriteAllText(path, test);
+        }
+
         //File.WriteAllLines
         //(
         //    "test.txt",
         //    q_table.Select
         //    (
-        //        kvp => $"{kvp.Key.ToString()};{kvp.Value.Select(x=>x.Key)}"
+        //        kvp => $"{kvp.Key.ToString()};{kvp.Value.Select(x => x.Key)}"
         //    )
         //);
-
-        string test = string.Join(";", q_table);
-        File.WriteAllText("test.txt", test);
-
 
     }
 }
