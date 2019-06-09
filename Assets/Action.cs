@@ -1,26 +1,44 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public struct Action
 {
-    public int h;
-    public int v;
-    public int r;
-    public int b;
+    private static List<Action> allPossibleActions;
+    public static List<Action> AllPossibleActions
+    {
+        get
+        {
+            if (allPossibleActions == null)
+            {
+                allPossibleActions = new List<Action>();
+                for (float angle = minPadAngle; angle <= maxPadAngle; angle += padAngleStep)
+                {
+                    for (float bounciness = minPadBounciness; bounciness <= maxPadBounciness; bounciness += bouncinessStep)
+                    {
+                        allPossibleActions.Add(new Action() { Angle = angle, Bounciness = bounciness });
+                    }
+                }
+                allPossibleActions.Add(new Action() { Angle = 0, Bounciness = -1 });
+            }
+            return allPossibleActions;
+        }
+    }
 
-    //public Action()
-    //{
-    //    h = UnityEngine.Random.Range(-1, 2);
-    //    v = UnityEngine.Random.Range(-1, 2);
-    //    r = UnityEngine.Random.Range(-1, 2);
-    //    b = UnityEngine.Random.Range(-1, 2);
-    //}
+    public const float minPadAngle = -90;
+    public const float maxPadAngle = 90;
+    public const float minPadBounciness = 0;
+    public const float maxPadBounciness = 4;
+
+    public const float padAngleStep = 30;
+    public const float bouncinessStep = 0.5f;
+
+    public float Angle;
+    public float Bounciness;
 
     public Action NextRandom()
     {
-        h = UnityEngine.Random.Range(-1, 2);
-        v = UnityEngine.Random.Range(-1, 2);
-        r = UnityEngine.Random.Range(-1, 2);
-        b = UnityEngine.Random.Range(-1, 2);
+        Angle = UnityEngine.Random.Range(minPadAngle / padAngleStep, maxPadAngle / padAngleStep + 1) * padAngleStep;
+        Bounciness = UnityEngine.Random.Range(minPadBounciness / bouncinessStep, maxPadBounciness / bouncinessStep + 1) * bouncinessStep;
         return this;
     }
 
@@ -41,6 +59,6 @@ public struct Action
 
     public override string ToString()
     {
-        return "Action=["+string.Join(",", h, v, r, b)+"]";
+        return "Action=[" + string.Join(",", Angle, Bounciness) + "]";
     }
 }

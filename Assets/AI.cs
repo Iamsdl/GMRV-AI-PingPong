@@ -1,12 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
 public class AI : MonoBehaviour
 {
+    private bool hitMyTable;
+    private bool hitMyPad;
+
+
+    private State lastRelevantState;
+
+    public const int AiWinReward = 1000;
+    public const int AiLoseReward = -10;
+    public const int AiHitOpponentTableReward = 100;
+    public const int AiHitBallReward = 10;
+
     public GameObject ball;
+    private Rigidbody2D ballRB;
     private GameObject paddle;
 
     private State currentState;
@@ -26,6 +39,12 @@ public class AI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        hitMyTable = false;
+        hitMyPad = false;
+
+
+
+        ballRB = ball.GetComponent<Rigidbody2D>();
         action = new Action();
 
         paddle = this.gameObject;
@@ -41,7 +60,7 @@ public class AI : MonoBehaviour
                 {
                     for (int l = -1; l <= 1; l++)
                     {
-                        possibleActions.Add(new Action() { h = i, v = j, r = k, b = l });
+                        possibleActions.Add(new Action() { h = i, v = j, Angle = k, Bounciness = l });
                     }
                 }
             }
@@ -57,34 +76,25 @@ public class AI : MonoBehaviour
         if (path.Length != 0)
         {
             string[] rows = File.ReadAllText(path).Split('\n');
-            for (int i = 0; i < rows.Length-1; i++)
+            for (int i = 0; i < rows.Length - 1; i++)
             {
-                List<Action> actions = new List<Action>();
                 List<float> rewards = new List<float>();
 
-                string[] rowSplit = rows[i].Split(';');
-                string stateString = rowSplit[0];
+                //string[] rowSplit = rows[i].Split(';');
+                string[] rowSplit = rows[i].Split('[', ']');
+                string stateString = rowSplit[1];
+                string[] rewardsString = rowSplit[3].Split(';');
+                string RString = rowSplit[5];
                 State state = new State(ball, paddle);
                 state.FromString(stateString);
-                for (int j = 1; j < rowSplit.Length-1; j++)
+                int ri = 0;
+                foreach (Action action in possibleActions)
                 {
-                    string actionString = rowSplit[j];
-                    int index1 = actionString.IndexOf('[', 1);
-                    int index2 = actionString.IndexOf(']');
-                    string[] actionComponents = actionString.Substring(index1 + 1, index2 - index1 - 1).Split(',');
-                    Action action = new Action()
-                    {
-                        h = Convert.ToInt32(actionComponents[0]),
-                        v = Convert.ToInt32(actionComponents[1]),
-                        r = Convert.ToInt32(actionComponents[2]),
-                        b = Convert.ToInt32(actionComponents[3])
-                    };
-                    actions.Add(action);
-                    float reward = Convert.ToSingle(actionString.Substring(index2 + 2).Trim(']'));
-                    rewards.Add(reward);
+                    rewards.Add(Convert.ToSingle(rewardsString[ri]));
+                    ri++;
                 }
-                AddStateToQTable(state, actions, rewards);
-                SetReward(state, Convert.ToSingle(rowSplit[rowSplit.Length - 1]));
+                AddStateToQTable(state, possibleActions, rewards);
+                SetReward(state, Convert.ToSingle(RString));
             }
         }
     }
@@ -94,9 +104,12 @@ public class AI : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        currentState.SetBallX(ballRB.transform.position.x);
+        currentState.SetBallY(ballRB.transform.position.y);
+        currentState.SetBallDir(ballRB.velocity);
         AddStateToQTable(currentState);
         SetReward(currentState);
-        if (currentState.ballState != BallState.Irrelevant)
+        if (currentState.MustHit != BallState.Irrelevant)
         {
             if (UnityEngine.Random.Range(0.0f, 1.0f) < qProb)
             {
@@ -110,8 +123,8 @@ public class AI : MonoBehaviour
         else
         {
             action.h = 0;
-            action.b = 0;
-            action.r = 0;
+            action.Bounciness = 0;
+            action.Angle = 0;
             action.v = 0;
         }
         nextState = currentState.Apply(action);
@@ -128,15 +141,40 @@ public class AI : MonoBehaviour
         currentState = nextState;
     }
 
-    //private void AddStateToRTable(State state)
-    //{
-    //    if (!r_table.ContainsKey(state))
-    //    {
-    //        r_table.Add(state, -0.5f);
-    //    }
-    //}
+    public void HitMyTable()
+    {
+        if (hitMyPad)
+        {
+            SetReward(lastRelevantState, AiLoseReward);
+        }
+        else
+        {
+            currentState = new State(true, ballRB.transform.position.x, ballRB.transform.position.y, ballRB.velocity);
+        }
+    }
+    public void HitOtherTable()
+    {
 
-    public void SetReward(State state, float reward=-0.5f)
+    }
+    public void HitMyPad()
+    {
+        lastRelevantState = currentState;
+        currentState = new State(false);
+    }
+    public void HitOtherPad()
+    {
+
+    }
+    public void HitEdge()
+    {
+
+    }
+    public void Reset()
+    {
+
+    }
+
+    public void SetReward(State state, float reward = -0.5f)
     {
         if (!r_table.ContainsKey(state))
         {
@@ -158,7 +196,7 @@ public class AI : MonoBehaviour
                 q_table[state].Add(a, -1);
             }
 
-            q_table[state][new Action() { b = 0, h = 0, r = 0, v = 0 }] = 0;
+            q_table[state][new Action() { Bounciness = 0, h = 0, Angle = 0, v = 0 }] = 0;
         }
     }
 
@@ -170,6 +208,13 @@ public class AI : MonoBehaviour
             for (int i = 0; i < actions.Count; i++)
             {
                 q_table[state].Add(actions[i], rewards[i]);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < actions.Count; i++)
+            {
+                q_table[state][actions[i]] = rewards[i];
             }
         }
     }
@@ -187,32 +232,9 @@ public class AI : MonoBehaviour
         return max;
     }
 
-    public void SetReward(float value)
-    {
-        if (!r_table.ContainsKey(currentState))
-        {
-            r_table.Add(currentState, value);
-        }
-        else
-        {
-            r_table[currentState] = value;
-        }
-    }
-
     public State GetCurrentState()
     {
         return currentState;
-    }
-
-
-
-    public void SetBallState(BallState ballState)
-    {
-        currentState.ballState = ballState;
-    }
-    public BallState GetBallState()
-    {
-        return currentState.ballState;
     }
 
     private void OnApplicationQuit()
@@ -225,12 +247,12 @@ public class AI : MonoBehaviour
 
         if (path.Length != 0)
         {
-            string test = "";
+            StringBuilder test = new StringBuilder();
             foreach (var item in q_table.Keys)
             {
-                test += "State=[" + item + "];" + string.Join(";", q_table[item]) + ";" + r_table[item] + "\n";
+                test.Append("State=[" + item + "];Rewards=[" + string.Join(";", q_table[item].Values) + "];R=[" + r_table[item] + "]\n");
             }
-            File.WriteAllText(path, test);
+            File.WriteAllText(path, test.ToString());
         }
 
         //File.WriteAllLines
