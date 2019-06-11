@@ -494,7 +494,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 903397950}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7, y: -3.5, z: 0}
+  m_LocalPosition: {x: -7, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 10, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -556,10 +556,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 903397950}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f75bc5913a63fb48a884de17081b307, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c8645bbf0a70d54a98301288772491d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ball: {fileID: 1073607880}
 --- !u!1 &937336082
 GameObject:
   m_ObjectHideFlags: 0
@@ -647,9 +646,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1073607882}
   - component: {fileID: 1073607881}
+  - component: {fileID: 1073607883}
   - component: {fileID: 1073607884}
   - component: {fileID: 1073607885}
-  - component: {fileID: 1073607883}
   m_Layer: 8
   m_Name: Ball
   m_TagString: Untagged
@@ -714,7 +713,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1073607880}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4, y: 3, z: 0}
+  m_LocalPosition: {x: -4, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -733,8 +732,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeScale: 1
-  LeftAI: {fileID: 903397955}
-  RightAI: {fileID: 1413388414}
+  leftPlayerPad: {fileID: 903397950}
+  rightPlayerPad: {fileID: 1413388409}
+  table: {fileID: 1933116551}
+  edge: {fileID: 1657405919}
+  ai: {fileID: 1413388414}
 --- !u!50 &1073607884
 Rigidbody2D:
   serializedVersion: 4
@@ -848,13 +850,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1413388409}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7, y: -3.5, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: -0.258819, w: 0.9659259}
+  m_LocalPosition: {x: 7, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 10, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -30}
 --- !u!61 &1413388412
 BoxCollider2D:
   m_ObjectHideFlags: 0

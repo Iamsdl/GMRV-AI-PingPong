@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public struct Action
 {
@@ -27,7 +26,7 @@ public struct Action
 
     public const float minPadAngle = -90;
     public const float maxPadAngle = 90;
-    public const float minPadBounciness = 1;
+    public const float minPadBounciness = 0;
     public const float maxPadBounciness = 4;
 
     public const float padAngleStep = 30;
@@ -38,15 +37,8 @@ public struct Action
 
     public Action NextRandom()
     {
-        Angle = 0;
-        Bounciness = -1;
-        float wait = UnityEngine.Random.Range(0, 1.0f);
-        if(wait<0.5)
-        {
-            return this;
-        }
-        Angle = (int)Mathf.Floor(0.5f + UnityEngine.Random.Range(minPadAngle / padAngleStep, maxPadAngle / padAngleStep)) * padAngleStep;
-        Bounciness = (int)Mathf.Floor(0.5f + UnityEngine.Random.Range(minPadBounciness / bouncinessStep, maxPadBounciness / bouncinessStep)) * bouncinessStep;
+        Angle = (int)Math.Round(UnityEngine.Random.Range(minPadAngle / padAngleStep, maxPadAngle / padAngleStep + 1)) * padAngleStep;
+        Bounciness = (int)Math.Round(UnityEngine.Random.Range(minPadBounciness / bouncinessStep, maxPadBounciness / bouncinessStep + 1)) * bouncinessStep;
         return this;
     }
 
