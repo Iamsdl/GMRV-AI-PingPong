@@ -7,20 +7,15 @@ using UnityEngine;
 
 public class AI : MonoBehaviour
 {
-    private bool hitMyTable;
-    private bool hitMyPad;
-
-
-    private State lastRelevantState;
-
-    public const int AiWinReward = 1000;
     public const int AiLoseReward = -10;
     public const int AiHitOpponentTableReward = 100;
-    public const int AiHitBallReward = 10;
 
     public GameObject ball;
     private Rigidbody2D ballRB;
     private GameObject paddle;
+    private Rigidbody2D padRB;
+
+    private Vector2 initialPosition;
 
     private State currentState;
     private State nextState;
@@ -33,45 +28,34 @@ public class AI : MonoBehaviour
     private const float gamma = 0.5f;
     private const float qProb = 0.1f;
 
-    private List<Action> possibleActions;
+    private static List<Action> possibleActions;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        hitMyTable = false;
-        hitMyPad = false;
-
-
-
         ballRB = ball.GetComponent<Rigidbody2D>();
+        padRB = this.GetComponent<Rigidbody2D>();
+        initialPosition = padRB.position;
+
         action = new Action();
 
         paddle = this.gameObject;
-        //State test1 = new State(ball, paddle);
-        //test1.PadX = 1;
 
-        possibleActions = new List<Action>();
-        for (int i = -1; i <= 1; i++)
-        {
-            for (int j = -1; j <= 1; j++)
-            {
-                for (int k = -1; k <= 1; k++)
-                {
-                    for (int l = -1; l <= 1; l++)
-                    {
-                        possibleActions.Add(new Action() { h = i, v = j, Angle = k, Bounciness = l });
-                    }
-                }
-            }
-        }
+        possibleActions = Action.AllPossibleActions;
 
         q_table = new Dictionary<State, Dictionary<Action, float>>();
-        currentState = new State(ball, paddle);
+        currentState = State.waitingState;
         AddStateToQTable(currentState);
+
+        padRB.isKinematic = true;
 
         r_table = new Dictionary<State, float>();
         SetReward(currentState);
+    }
+
+    public static void LoadFromFile()
+    {
         string path = EditorUtility.OpenFilePanel("Load qtable", "", "txt");
         if (path.Length != 0)
         {
@@ -85,7 +69,7 @@ public class AI : MonoBehaviour
                 string stateString = rowSplit[1];
                 string[] rewardsString = rowSplit[3].Split(';');
                 string RString = rowSplit[5];
-                State state = new State(ball, paddle);
+                State state = new State();
                 state.FromString(stateString);
                 int ri = 0;
                 foreach (Action action in possibleActions)
@@ -99,17 +83,9 @@ public class AI : MonoBehaviour
         }
     }
 
-
-
-    // Update is called once per frame
     void FixedUpdate()
     {
-        currentState.SetX(ballRB.transform.position.x);
-        currentState.SetBallY(ballRB.transform.position.y);
-        currentState.SetBallDir(ballRB.velocity);
-        AddStateToQTable(currentState);
-        SetReward(currentState);
-        if (currentState.MustHit != BallState.Irrelevant)
+        if (AlreadyHitMyTable() && !AlreadyHitMyPad())
         {
             if (UnityEngine.Random.Range(0.0f, 1.0f) < qProb)
             {
@@ -119,62 +95,91 @@ public class AI : MonoBehaviour
             {
                 action = action.NextBest(q_table[currentState]);
             }
+
+            nextState = currentState.Apply(action); //TODO see if current state and next state are different
+            AddStateToQTable(nextState);
+            SetReward(nextState);
+            float reward = r_table[currentState];
+
+            float old_value = q_table[currentState][action];
+            float next_max = FindMaxValue(q_table[nextState]);
+
+            float new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max);
+            q_table[currentState][action] = new_value;
+
+            currentState = nextState;
+
+            if (action.Bounciness >= 0)
+            {
+                padRB.MoveRotation(action.Angle);
+                padRB.sharedMaterial.bounciness = action.Bounciness;
+                float ballAngle=Mathf.Asin(ballRB.velocity.normalized.y) * 180 / Mathf.PI;
+                float DeltaAlfa = Mathf.Abs(padRB.rotation - ballAngle), sign = Mathf.Sign(ballRB.position.x);
+                padRB.MovePosition(ballRB.position + ballRB.velocity * Time.fixedDeltaTime + sign * new Vector2(0.1f, 0.1f) + new Vector2(sign * Mathf.Sin(DeltaAlfa), 0.1f * Mathf.Cos(DeltaAlfa)));
+            }
         }
-        else
-        {
-            action.h = 0;
-            action.Bounciness = 0;
-            action.Angle = 0;
-            action.v = 0;
-        }
-        nextState = currentState.Apply(action);
-        AddStateToQTable(nextState);
-        SetReward(nextState);
-        float reward = r_table[nextState];
-
-        float old_value = q_table[currentState][action];
-        float next_max = FindMaxValue(q_table[nextState]);
-
-        float new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max);
-        q_table[currentState][action] = new_value;
-
-        currentState = nextState;
     }
 
-    public void HitMyTable()
+    private bool AlreadyHitMyTable()
     {
-        if (hitMyPad)
-        {
-            SetReward(lastRelevantState, AiLoseReward);
-        }
-        else
-        {
-            currentState = new State(true, ballRB.transform.position.x, ballRB.transform.position.y, ballRB.velocity);
-        }
+        return currentState.GetX() >= 0;
     }
+
+    private bool AlreadyHitMyPad()
+    {
+        return currentState.GetBounciness() >= 0;
+    }
+
+    public bool HitMyTable()
+    {
+        if (AlreadyHitMyPad() || AlreadyHitMyTable())
+        {
+            SetReward(currentState, AiLoseReward);
+            return true;
+        }
+        currentState = new State(Mathf.Abs(ballRB.transform.position.x), new Vector2(Mathf.Abs(ballRB.velocity.x), Mathf.Abs(ballRB.velocity.y)));
+        AddStateToQTable(currentState);
+        SetReward(currentState);
+        return false;
+    }
+
     public void HitOtherTable()
     {
-
+        if (AlreadyHitMyPad())
+            SetReward(currentState, AiHitOpponentTableReward);
+        currentState = State.waitingState;
     }
     public void HitMyPad()
     {
-        lastRelevantState = currentState;
-        currentState = new State(false);
+        StartCoroutine(ResetPosition());
     }
+
+    private IEnumerator<WaitForSeconds> ResetPosition()
+    {
+        yield return new WaitForSeconds(1);
+        padRB.MovePosition(initialPosition);
+    }
+
     public void HitOtherPad()
     {
-
+        currentState = State.waitingState;
     }
     public void HitEdge()
     {
-
+        if (AlreadyHitMyPad())
+        {
+            SetReward(currentState, AiLoseReward);
+        }
     }
     public void Reset()
     {
+        currentState = State.waitingState;
+        padRB.MovePosition(initialPosition);
+        padRB.MoveRotation(0);
 
     }
 
-    public void SetReward(State state, float reward = -0.5f)
+    private static void SetReward(State state, float reward = -0.5f)
     {
         if (!r_table.ContainsKey(state))
         {
@@ -186,7 +191,7 @@ public class AI : MonoBehaviour
         }
     }
 
-    private void AddStateToQTable(State state)
+    private static void AddStateToQTable(State state)
     {
         if (!q_table.ContainsKey(state))
         {
@@ -196,11 +201,11 @@ public class AI : MonoBehaviour
                 q_table[state].Add(a, -1);
             }
 
-            q_table[state][new Action() { Bounciness = 0, h = 0, Angle = 0, v = 0 }] = 0;
+            q_table[state][new Action() { Bounciness = -1, Angle = 0 }] = 0;
         }
     }
 
-    private void AddStateToQTable(State state, List<Action> actions, List<float> rewards)
+    private static void AddStateToQTable(State state, List<Action> actions, List<float> rewards)
     {
         if (!q_table.ContainsKey(state))
         {
@@ -239,11 +244,24 @@ public class AI : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        //File.WriteAllLines
+        //(
+        //    "test.txt",
+        //    q_table.Select
+        //    (
+        //        kvp => $"{kvp.Key.ToString()};{kvp.Value.Select(x => x.Key)}"
+        //    )
+        //);
+
+    }
+
+    public static void SaveToFile()
+    {
         var path = EditorUtility.SaveFilePanel(
-            "Save qtable",
-            "",
-            "test.txt",
-            "txt");
+                    "Save qtable",
+                    "",
+                    "test.txt",
+                    "txt");
 
         if (path.Length != 0)
         {
@@ -254,15 +272,5 @@ public class AI : MonoBehaviour
             }
             File.WriteAllText(path, test.ToString());
         }
-
-        //File.WriteAllLines
-        //(
-        //    "test.txt",
-        //    q_table.Select
-        //    (
-        //        kvp => $"{kvp.Key.ToString()};{kvp.Value.Select(x => x.Key)}"
-        //    )
-        //);
-
     }
 }

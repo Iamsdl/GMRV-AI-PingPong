@@ -73,43 +73,43 @@ namespace Backup
 
         public int GetBallX()
         {
-            //BallX = ballState == BallState.Irrelevant ? 0 : (int)Math.Floor(ball.transform.position.x / gridSize);
+            //BallX = ballState == BallState.Irrelevant ? 0 : (int)Mathf.Floor(ball.transform.position.x / gridSize);
             return BallX;
         }
 
         public void SetBallX(float value)
         {
-            BallX = Convert.ToInt32(Math.Floor(value / gridSize));
-            //int test = Convert.ToInt32(Math.Floor(value / gridSize));
+            BallX = Convert.ToInt32(Mathf.Floor(value / gridSize));
+            //int test = Convert.ToInt32(Mathf.Floor(value / gridSize));
             //BallX = test;
         }
 
         public int GetBallY()
         {
-            //BallY = ballState == BallState.Irrelevant ? 0 : (int)Math.Floor(ball.transform.position.y / gridSize);
+            //BallY = ballState == BallState.Irrelevant ? 0 : (int)Mathf.Floor(ball.transform.position.y / gridSize);
             return BallY;
         }
 
         public void SetBallY(float value)
         {
-            int test = Convert.ToInt32(Math.Floor(value / gridSize));
+            int test = Convert.ToInt32(Mathf.Floor(value / gridSize));
             BallY = test;
         }
 
         public int GetBallDir()
         {
-            //BallDir = ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(Math.Asin(ball.GetComponent<Rigidbody2D>().velocity.normalized.y) * 180 / Math.PI / angleStep));
+            //BallDir = ballState == BallState.Irrelevant ? 0 : (int)(Mathf.Floor(Mathf.Asin(ball.GetComponent<Rigidbody2D>().velocity.normalized.y) * 180 / Mathf.PI / angleStep));
             return BallDir;
         }
 
         public void SetBallDir(Vector2 value)
         {
-            BallDir = ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(Math.Asin(value.normalized.y) * 180 / Math.PI / angleStep));
+            BallDir = ballState == BallState.Irrelevant ? 0 : (int)(Mathf.Floor(Mathf.Asin(value.normalized.y) * 180 / Mathf.PI / angleStep));
         }
 
         public int GetPadX()
         {
-            //PadX = ballState == BallState.Irrelevant ? 0 : (int)Math.Ceiling(paddle.transform.position.x / gridSize);
+            //PadX = ballState == BallState.Irrelevant ? 0 : (int)Mathf.Ceiling(paddle.transform.position.x / gridSize);
             return PadX;
         }
         public void SetPadX(int value)
@@ -137,7 +137,7 @@ namespace Backup
         }
         public int GetPadY()
         {
-            //PadY = ballState == BallState.Irrelevant ? 0 : (int)Math.Ceiling(paddle.transform.position.y / gridSize);
+            //PadY = ballState == BallState.Irrelevant ? 0 : (int)Mathf.Ceiling(paddle.transform.position.y / gridSize);
             return PadY;
         }
         public void SetPadY(int value)
@@ -165,7 +165,7 @@ namespace Backup
         }
         public int GetPadRot()
         {
-            //PadRot = ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().transform.rotation.z / angleStep));
+            //PadRot = ballState == BallState.Irrelevant ? 0 : (int)(Mathf.Floor(paddle.GetComponent<Rigidbody2D>().transform.rotation.z / angleStep));
             return PadRot;
         }
         public void SetPadRot(int value)
@@ -178,7 +178,7 @@ namespace Backup
         }
         public int GetPadBounciness()
         {
-            //PadBounciness = ballState == BallState.Irrelevant ? 0 : (int)(Math.Floor(paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness / bouncinessStep));
+            //PadBounciness = ballState == BallState.Irrelevant ? 0 : (int)(Mathf.Floor(paddle.GetComponent<Rigidbody2D>().sharedMaterial.bounciness / bouncinessStep));
             return PadBounciness;
         }
         public void SetPadBounciness(int value)

@@ -3,6 +3,8 @@ using UnityEngine;
 
 public struct State
 {
+    public static State waitingState = new State(-1, Vector2.zero);
+
     public State(float ballX, Vector2 ballVelocity)
     {
         X = -1;
@@ -14,11 +16,11 @@ public struct State
         if (ballX < 0)
             return;
         SetX(ballX);
-        SetAngle(ballVelocity);
+        SetBallAngle(ballVelocity);
         SetSpeed(ballVelocity);
     }
 
-    public const float gridSize = 0.5f;
+    public const float gridSize = 0.1f;
     public const int timeStep = 1;
     public const float ballAngleStep = 30;
 
@@ -29,6 +31,16 @@ public struct State
     private float PadAngle;
     private float Bounciness;
 
+    public float GetBounciness()
+    {
+        return Bounciness;
+    }
+
+    public float GetPadAngle()
+    {
+        return PadAngle;
+    }
+
     public int GetX()
     {
         return X;
@@ -36,7 +48,7 @@ public struct State
 
     public void SetX(float value)
     {
-        X = Convert.ToInt32(Math.Floor(value / gridSize));
+        X = Convert.ToInt32(Mathf.Floor(value / gridSize));
     }
 
     public int GetAngle()
@@ -44,9 +56,9 @@ public struct State
         return BallAngle;
     }
 
-    public void SetAngle(Vector2 value)
+    public void SetBallAngle(Vector2 value)
     {
-        BallAngle = (int)(Math.Floor(Math.Asin(value.normalized.y) * 180 / Math.PI / ballAngleStep));
+        BallAngle = (int)(Mathf.Floor(Mathf.Asin(value.normalized.y) * 180 / Mathf.PI / ballAngleStep));
     }
 
     public int GetSpeed()
@@ -56,7 +68,7 @@ public struct State
 
     public void SetSpeed(Vector2 value)
     {
-        Speed = (int)(Math.Round(value.magnitude));
+        Speed = (int)(Mathf.Floor(0.5f+value.magnitude));
     }
 
     public int GetTime()
@@ -66,7 +78,7 @@ public struct State
 
     public void SetTime(float value)
     {
-        Time = Convert.ToInt32(Math.Floor(value * 30 / timeStep));
+        Time = Convert.ToInt32(Mathf.Floor(value * 30 / timeStep));
     }
 
     public State Apply(Action a)

@@ -13,25 +13,15 @@ public class Ball : MonoBehaviour
 
     private bool autoStart = false;
 
-    private int EdgeLayer;
-    private int LeftTableLayer;
-    private int RightTableLayer;
-    private int LeftPadLayer;
-    private int RightPadLayer;
-
-
-
     // Start is called before the first frame update
     void Start()
     {
-        EdgeLayer = LayerMask.GetMask("Edge");
-        LeftTableLayer = LayerMask.GetMask("LeftTable");
-        RightTableLayer = LayerMask.GetMask("RightTable");
-        LeftPadLayer = LayerMask.GetMask("LeftPad");
-        RightPadLayer = LayerMask.GetMask("RightPad");
-
         ballRB = this.GetComponent<Rigidbody2D>();
-        Reset();
+        AI.LoadFromFile();
+        this.transform.position = new Vector3(-4, 3, 0);
+        ballRB.velocity = new Vector2(0, 0);
+        ballRB.angularVelocity = 0;
+        ballRB.simulated = false;
     }
 
     // Update is called once per frame
@@ -55,27 +45,27 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.IsTouchingLayers(LeftTableLayer))
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("LeftTable"))
         {
-            LeftAI.HitMyTable();
+            if (LeftAI.HitMyTable())
+                Reset();
             RightAI.HitOtherTable();
         }
-        if (collision.collider.IsTouchingLayers(RightTableLayer))
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("RightTable"))
         {
             LeftAI.HitOtherTable();
-            RightAI.HitMyTable();
+            if (RightAI.HitMyTable())
+                Reset();
         }
-        if (collision.collider.IsTouchingLayers(LeftPadLayer))
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("LeftPad"))
         {
             LeftAI.HitMyPad();
-            RightAI.HitOtherPad();
         }
-        if (collision.collider.IsTouchingLayers(RightPadLayer))
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("RightPad"))
         {
-            LeftAI.HitOtherPad();
             RightAI.HitMyPad();
         }
-        if (collision.collider.IsTouchingLayers(EdgeLayer))
+        if (collision.collider.gameObject.layer == LayerMask.NameToLayer("Edge"))
         {
             LeftAI.HitEdge();
             RightAI.HitEdge();
@@ -85,16 +75,22 @@ public class Ball : MonoBehaviour
 
     private void Reset()
     {
+        LeftAI.Reset();
+        RightAI.Reset();
+
         this.transform.position = new Vector3(-4, 3, 0);
         ballRB.velocity = new Vector2(0, 0);
         ballRB.angularVelocity = 0;
         ballRB.simulated = false;
-        //LeftAI.Reset()
-        //RightAI.Reset()
         if (autoStart)
         {
             ballRB.simulated = true;
             ballRB.velocity = new Vector2(7, 0);
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        AI.SaveToFile();
     }
 }
