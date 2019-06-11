@@ -55,13 +55,8 @@
   <ItemGroup>
      <Compile Include="Assets\Action.cs" />
      <Compile Include="Assets\AI.cs" />
-     <Compile Include="Assets\Backup\Action.cs" />
-     <Compile Include="Assets\Backup\AI.cs" />
-     <Compile Include="Assets\Backup\Ball.cs" />
-     <Compile Include="Assets\Backup\BallState.cs" />
-     <Compile Include="Assets\Backup\Player.cs" />
-     <Compile Include="Assets\Backup\State.cs" />
      <Compile Include="Assets\Ball.cs" />
+     <Compile Include="Assets\BallState.cs" />
      <Compile Include="Assets\Player.cs" />
      <Compile Include="Assets\State.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
