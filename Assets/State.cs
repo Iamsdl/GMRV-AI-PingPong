@@ -3,91 +3,102 @@ using UnityEngine;
 
 public struct State
 {
-    //TODO adauga angle si bounciness in state
-    //TODO action modifica state
-
-    public State(bool mustHit = false, float ballX = 0, float ballY = 0, Vector2 ballVelocity = new Vector2())
+    public State(float ballX, Vector2 ballVelocity)
     {
-        MustHit = mustHit;
-        BallX = 0;
-        BallY = 0;
-        BallDir = 0;
-        BallSpeed = 0;
-
-        SetBallX(ballX);
-        SetBallY(ballY);
-        SetBallDir(ballVelocity);
-        SetBallSpeed(ballVelocity);
+        X = -1;
+        BallAngle = 0;
+        Speed = 0;
+        Time = 0;
+        PadAngle = 0;
+        Bounciness = -1;
+        if (ballX < 0)
+            return;
+        SetX(ballX);
+        SetAngle(ballVelocity);
+        SetSpeed(ballVelocity);
     }
-    
+
     public const float gridSize = 0.5f;
+    public const int timeStep = 1;
     public const float ballAngleStep = 30;
 
-    private bool MustHit;
-    private int BallX;
-    private int BallY;
-    private int BallDir;
-    private int BallSpeed;
+    private int X;
+    private int BallAngle;
+    private int Speed;
+    private int Time;
+    private float PadAngle;
+    private float Bounciness;
 
-    public int GetBallX()
+    public int GetX()
     {
-        return BallX;
+        return X;
     }
 
-    public void SetBallX(float value)
+    public void SetX(float value)
     {
-        BallX = Convert.ToInt32(Math.Floor(value / gridSize));
+        X = Convert.ToInt32(Math.Floor(value / gridSize));
     }
 
-    public int GetBallY()
+    public int GetAngle()
     {
-        return BallY;
+        return BallAngle;
     }
 
-    public void SetBallY(float value)
+    public void SetAngle(Vector2 value)
     {
-        int test = Convert.ToInt32(Math.Floor(value / gridSize));
-        BallY = test;
+        BallAngle = (int)(Math.Floor(Math.Asin(value.normalized.y) * 180 / Math.PI / ballAngleStep));
     }
 
-    public int GetBallDir()
+    public int GetSpeed()
     {
-        return BallDir;
+        return Speed;
     }
 
-    public void SetBallDir(Vector2 value)
+    public void SetSpeed(Vector2 value)
     {
-        BallDir = MustHit ? (int)(Math.Floor(Math.Asin(value.normalized.y) * 180 / Math.PI / ballAngleStep)) : 0;
+        Speed = (int)(Math.Round(value.magnitude));
     }
 
-    public int GetBallSpeed()
+    public int GetTime()
     {
-        return BallSpeed;
+        return Time;
     }
 
-    public void SetBallSpeed(Vector2 value)
+    public void SetTime(float value)
     {
-        BallSpeed = MustHit ? (int)(Math.Round(value.magnitude)) : 0;
+        Time = Convert.ToInt32(Math.Floor(value * 30 / timeStep));
     }
 
-    //public State Apply(Action action)
-    //{
-    //    return new State();
-    //}
+    public State Apply(Action a)
+    {
+        State state = this;
+        if (a.Bounciness < 0)
+        {
+            if (state.X >= 0)
+            {
+                state.Time++;
+            }
+            return state;
+        }
+        state.Bounciness = a.Bounciness;
+        state.PadAngle = a.Angle;
+        return state;
+    }
 
     public override string ToString()
     {
-        return $"{this.MustHit},{this.BallX},{this.BallY},{this.BallDir}, {this.BallSpeed}";
+        return $"{this.X},{this.BallAngle},{this.Speed},{this.Time},{this.PadAngle},{this.Bounciness}";
     }
 
     public void FromString(string stateString)
     {
         string[] text = stateString.Split(',');
 
-        MustHit = Convert.ToBoolean(text[0]);
-        BallX = Convert.ToInt32(text[1]);
-        BallY = Convert.ToInt32(text[2]);
-        BallDir = Convert.ToInt32(text[3]);
-        BallSpeed = Convert.ToInt32(text[4]);
+        X = Convert.ToInt32(text[0]);
+        BallAngle = Convert.ToInt32(text[1]);
+        Speed = Convert.ToInt32(text[3]);
+        Time = Convert.ToInt32(text[4]);
+        PadAngle = Convert.ToSingle(text[5]);
+        Bounciness = Convert.ToSingle(text[6]);
     }
 }

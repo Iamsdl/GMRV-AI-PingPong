@@ -104,7 +104,7 @@ public class AI : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        currentState.SetBallX(ballRB.transform.position.x);
+        currentState.SetX(ballRB.transform.position.x);
         currentState.SetBallY(ballRB.transform.position.y);
         currentState.SetBallDir(ballRB.velocity);
         AddStateToQTable(currentState);
