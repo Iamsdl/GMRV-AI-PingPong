@@ -117,7 +117,7 @@ public class AI : MonoBehaviour
         nextState = currentState.Apply(action);
         AddStateToQTable(nextState);
         SetReward(nextState);
-        float reward = r_table[nextState];
+        float reward = r_table[currentState];
 
         float old_value = q_table[currentState][action];
         float next_max = FindMaxValue(q_table[nextState]);
