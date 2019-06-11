@@ -37,8 +37,8 @@ public struct Action
 
     public Action NextRandom()
     {
-        Angle = (int)Math.Round(UnityEngine.Random.Range(minPadAngle / padAngleStep, maxPadAngle / padAngleStep + 1)) * padAngleStep;
-        Bounciness = (int)Math.Round(UnityEngine.Random.Range(minPadBounciness / bouncinessStep, maxPadBounciness / bouncinessStep + 1)) * bouncinessStep;
+        Angle = UnityEngine.Random.Range(minPadAngle / padAngleStep, maxPadAngle / padAngleStep + 1) * padAngleStep;
+        Bounciness = UnityEngine.Random.Range(minPadBounciness / bouncinessStep, maxPadBounciness / bouncinessStep + 1) * bouncinessStep;
         return this;
     }
 
