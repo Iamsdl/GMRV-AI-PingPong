@@ -25,13 +25,13 @@ public struct Action
         }
     }
 
-    public const float minPadAngle = -90;
-    public const float maxPadAngle = 90;
-    public const float minPadBounciness = 1;
-    public const float maxPadBounciness = 4;
+    public const float padAngleStep = 15;
+    public const float bouncinessStep = 0.25f;
 
-    public const float padAngleStep = 30;
-    public const float bouncinessStep = 0.5f;
+    public const float minPadAngle = padAngleStep;
+    public const float maxPadAngle = 90-padAngleStep;
+    public const float minPadBounciness = 1;
+    public const float maxPadBounciness = 2;
 
     public float Angle;
     public float Bounciness;

@@ -11,6 +11,7 @@ public class AI : MonoBehaviour
     public const int AiHitOpponentTableReward = 100;
 
     public GameObject ball;
+    public Ball ballScript;
     private Rigidbody2D ballRB;
     private GameObject paddle;
     private Rigidbody2D padRB;
@@ -111,11 +112,27 @@ public class AI : MonoBehaviour
 
             if (action.Bounciness >= 0)
             {
-                padRB.MoveRotation(action.Angle);
+                //ballRB.simulated = false;
+                float sign = Mathf.Sign(ballRB.position.x);
+                float padAngle = sign * Mathf.Asin(ballRB.velocity.normalized.y) * Mathf.Rad2Deg;
+                while (padAngle > 90)
+                    padAngle -= 90;
+                while (padAngle < -90)
+                    padAngle += 90;
+                padAngle = (padAngle + 90) / 2 - action.Angle;
+                padRB.MoveRotation(padAngle);
                 padRB.sharedMaterial.bounciness = action.Bounciness;
-                float ballAngle=Mathf.Asin(ballRB.velocity.normalized.y) * 180 / Mathf.PI;
-                float DeltaAlfa = Mathf.Abs(padRB.rotation - ballAngle), sign = Mathf.Sign(ballRB.position.x);
-                padRB.MovePosition(ballRB.position + ballRB.velocity * Time.fixedDeltaTime + sign * new Vector2(0.1f, 0.1f) + new Vector2(sign * Mathf.Sin(DeltaAlfa), 0.1f * Mathf.Cos(DeltaAlfa)));
+                //float DeltaAlfa = Mathf.Abs(action.Angle - ballAngle) * Mathf.Deg2Rad;
+                Vector2 padNormal = Quaternion.AngleAxis(padAngle, Vector3.forward) * (Vector2.left * sign);
+                //Vector2 padUp = Quaternion.AngleAxis(action.Angle, Vector3.forward) * Vector2.up;
+                //padRB.MovePosition(ballRB.position + ballRB.velocity * Time.fixedDeltaTime + sign * 0.1f * ballRB.velocity.normalized + ballRB.velocity.normalized * (sign * Mathf.Cos(DeltaAlfa) + 0.1f * Mathf.Sin(DeltaAlfa)));
+                //padRB.MovePosition(ballRB.position + ballRB.velocity * Time.fixedDeltaTime + Vector2.Dot(padNormal, ballRB.velocity.normalized) * 0.2f * padNormal + Vector2.Dot(padUp, ballRB.velocity.normalized) * padUp);
+                //ballRB.simulated = true;
+
+                //fara palete
+                //ballScript.Reflect(padNormal, action.Bounciness);
+                ballRB.velocity = Vector2.Reflect(ballRB.velocity, padNormal) * ballRB.sharedMaterial.bounciness * action.Bounciness;
+                ballScript.HitPad(sign < 0);
             }
         }
     }
@@ -151,7 +168,8 @@ public class AI : MonoBehaviour
     }
     public void HitMyPad()
     {
-        StartCoroutine(ResetPosition());
+        //StartCoroutine(ResetPosition());
+        padRB.MovePosition(initialPosition);
     }
 
     private IEnumerator<WaitForSeconds> ResetPosition()
@@ -179,7 +197,7 @@ public class AI : MonoBehaviour
 
     }
 
-    private static void SetReward(State state, float reward = -0.5f)
+    private static void SetReward(State state, float reward = 0)
     {
         if (!r_table.ContainsKey(state))
         {

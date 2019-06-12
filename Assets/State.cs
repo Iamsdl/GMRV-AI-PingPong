@@ -108,9 +108,9 @@ public struct State
 
         X = Convert.ToInt32(text[0]);
         BallAngle = Convert.ToInt32(text[1]);
-        Speed = Convert.ToInt32(text[3]);
-        Time = Convert.ToInt32(text[4]);
-        PadAngle = Convert.ToSingle(text[5]);
-        Bounciness = Convert.ToSingle(text[6]);
+        Speed = Convert.ToInt32(text[2]);
+        Time = Convert.ToInt32(text[3]);
+        PadAngle = Convert.ToSingle(text[4]);
+        Bounciness = Convert.ToSingle(text[5]);
     }
 }

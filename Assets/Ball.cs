@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
-    public int timeScale = 1;
+    public float timeScale = 1;
 
     public AI LeftAI;
     public AI RightAI;
@@ -12,16 +12,19 @@ public class Ball : MonoBehaviour
     private Rigidbody2D ballRB;
 
     private bool autoStart = false;
+    private bool mustReflect = false;
+    private Vector2 reflectionNormal;
+    private float reflectionBounciness;
 
     // Start is called before the first frame update
     void Start()
     {
         ballRB = this.GetComponent<Rigidbody2D>();
-        AI.LoadFromFile();
         this.transform.position = new Vector3(-4, 3, 0);
         ballRB.velocity = new Vector2(0, 0);
         ballRB.angularVelocity = 0;
         ballRB.simulated = false;
+        AI.LoadFromFile();
     }
 
     // Update is called once per frame
@@ -41,6 +44,22 @@ public class Ball : MonoBehaviour
             autoStart ^= true;
         }
         UnityEngine.Time.timeScale = timeScale;
+    }
+
+    void FixedUpdate()
+    {
+        if (mustReflect)
+        {
+            ballRB.velocity = Vector2.Reflect(ballRB.velocity, reflectionNormal) * ballRB.sharedMaterial.bounciness * reflectionBounciness;
+            mustReflect = false;
+        }
+    }
+
+    public void Reflect(Vector2 N, float b)
+    {
+        reflectionNormal = N;
+        reflectionBounciness = b;
+        mustReflect = true;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -71,6 +90,14 @@ public class Ball : MonoBehaviour
             RightAI.HitEdge();
             Reset();
         }
+    }
+
+    public void HitPad(bool left)
+    {
+        if (left)
+            LeftAI.HitMyPad();
+        else
+            RightAI.HitMyPad();
     }
 
     private void Reset()
